@@ -1,22 +1,28 @@
 import tweepy
 import os
-import dotenv
 import datetime
 import calendar
 import math
 import logging
 import time
-dotenv.load_dotenv()
+from dotenv import load_dotenv
 
+load_dotenv()
+
+bearer_token = os.getenv('BEARER_TOKEN')
 api_key = os.getenv('API_KEY')
 api_secret = os.getenv('API_SECRET')
 access_token = os.getenv('ACCESS_TOKEN')
 access_secret = os.getenv('ACCESS_SECRET')
 
-auth = tweepy.OAuthHandler(api_key, api_secret)
-auth.set_access_token(access_token, access_secret)
 
-api = tweepy.API(auth)
+client = tweepy.Client(bearer_token=bearer_token,
+access_token=access_token,
+access_token_secret=access_secret,
+consumer_key=api_key,
+consumer_secret=api_secret)
+
+
 logging.basicConfig(filename='./logs.log', level=logging.DEBUG)
 
 
@@ -32,21 +38,18 @@ def get_percent():
 
 def generate_progress(percent):
     progress = []
+    for i in range(20 - math.floor(percent / 5)):
+        progress.append('░')
     for i in range(math.floor(percent / 5)):
         progress.append('▓')
-    for i in range(20 - len(progress)):
-        progress.append('░')
     progress = ''.join(progress)
     return progress
 
-
 def tweet_it():
-    api.update_status(
-        f'We are {get_percent()}% through the year!\n{generate_progress(get_percent())}'
+    client.create_tweet(text=
+        f'نحن الآن {get_percent()}% على مرور 2024\n {generate_progress(get_percent())}'
     )
 
 
 if __name__ == '__main__':
-    while True:
-        tweet_it()
-        time.sleep(86490)
+    tweet_it()
